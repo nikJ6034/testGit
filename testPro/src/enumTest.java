@@ -5,7 +5,7 @@ public class enumTest {
 	public enum Season{
 		
 		SPRING("March through May"),
-		SUMMER("June through August21323"),
+		SUMMER("June through August"),
 		FALL("September through November"),
 		WINTER("December through February");
 		
