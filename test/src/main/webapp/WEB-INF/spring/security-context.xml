@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+<!-- 아래 경로의 자원은 spring security에서 제외한다. -->
+<security:http pattern="/**/*.js" security="none" />
+<security:http pattern="/**/*.css" security="none" />
+
+<!-- 
+	http : Authentication(인증)의 영역
+		use-expressions는 spEx(스프링 표현식)를 쓸것인지 안쓸 것인지 셋팅 하는 곳이다 기본값은 false이며 true시에는 꼭 스프링 표현식으로
+		작성 해야된다 intercept-url에서 access="ROLE_USER" -> hasRole('ROLE_USER')로 변경해야됨
+	intercept-url : 해당 url pattern과 매칭된 권한이 있는지 확인 한다. 없으면 login페이지도 이동.
+			pattern의 순서가 여기서 중요하다 만약 /**가 먼저 오게되면 login과 //login_duplicate는 전부 무시되어 버린다.
+			순서에 주의하여 작성하자.
+	auto-config : 기본 값을 사용할 것인지 안할것인지 설정하는 곳 true로 하면 기본적인 로그인 페이지가 자동으로 생성 된다고 함.
+			/spring_security_login으로 접속하면 자동생성된 로그인 창을 볼 수있다.
+			다만 form-login에서 login-page가 설정되어 있을 시 위의 경로로 들어가도 login-page에 설정된 페이지도 이동하는것 같다.
+	form-login : always-use-default-target은	로그인 후 default-target-url으로 갈지 말지를 설정한다.
+				false로 되어있으면 로그인 페이지로 이동 하기 전 페이지로 이동한다.
+	
+ -->
+<security:http auto-config="false" use-expressions="false">
+	<security:intercept-url pattern="/login" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+	<security:intercept-url pattern="/login_duplicate" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+	<security:intercept-url pattern="/**" access="ROLE_USER" />
+	
+	<security:form-login	login-page="/login"
+							username-parameter="id" 
+							password-parameter="pw" 
+							login-processing-url="/loginProcess"
+							default-target-url="/" 
+							authentication-failure-url="/login"
+							always-use-default-target="true"/>
+	<security:logout invalidate-session="true" logout-success-url="/login" logout-url="/logout"/>
+				
+	<security:session-management>
+       <security:concurrency-control max-sessions="1" expired-url="/login_duplicate"/>
+    </security:session-management>
+
+</security:http>
+
+<bean class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler"/>
+
+<!-- 
+	authentication-manager : http에서는 권한을 인증한다면 authentication-manager에서는 권할을 부여하는 곳이다.
+	user-service : name은 유저의 id를 말하고 password는 비밀번호이며 해당 계정으로 로그인 시 권한을 ROLE_USER로 부여한다.
+		이런방법은 거의 잘 쓰지 않고 데이터 베이스에 있는 유저에 대한 권한을 읽어와야 하기때문에 jdbc-user-service를 쓰거나
+		커스텀 프로바이더를 직접 구현 하여 사용한다. customAuthenticationProvider 참조
+	user : authorities속성은 꼭 ROLE_로 시작하여야 된다. (변경은 가능하나 그냥 이렇게 쓰자 )
+ -->
+	<security:authentication-manager>
+<!-- 		<security:authentication-provider> -->
+<!-- 			<security:user-service> -->
+<!-- 				<security:user name="test" password="test" authorities="ROLE_USER"/> -->
+<!-- 			</security:user-service> -->
+<!-- 			<security:jdbc-user-service data-source-ref=""/> -->
+<!-- 		</security:authentication-provider> -->
+			<security:authentication-provider user-service-ref="userService" >
+				<security:password-encoder ref="encoder"/>
+			</security:authentication-provider>
+<!--         <security:authentication-provider ref="customAuthenticationProvider"/> -->
+    </security:authentication-manager>
+
+<bean id="encoder" class="org.springframework.security.crypto.password.StandardPasswordEncoder"/>
+<bean id="customAuthenticationProvider" class="com.nikJ.utils.Spring_Security.CustomAuthenticationProvider"/>
+
+<bean id="userService" class="com.nikJ.utils.Spring_Security.UserService" >
+	<property name="user" ref="user" />
+</bean>
+<!-- <bean id="userDao" class="com.nikJ.test.login.dao.UserDao"/> -->
+<bean id="user" class="com.nikJ.utils.Spring_Security.User"/>
+</beans>
