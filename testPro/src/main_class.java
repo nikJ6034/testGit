@@ -6,7 +6,7 @@ public class main_class {
 		
 		mc.test2();
 		mc.test1();
-		//test1111
+		//test
 		
 		a a = new b();
 		
