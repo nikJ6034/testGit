@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+<!-- 
+	context:include-filter : 기본 패키지내에 모든 스트레오애노테이션으로 표현된 클래스를 빈으로 등록하되
+ 	@Controller로 표현된 클래스는 제외(context:exclude-filter)하겠다는 의미 
+ -->
+ 
+ <!-- 아래와 같은 셋팅을 하는 이유
+ 	Spring security에서 UserService가 있는대 그곳에서 어노테이션 기반으로dao를 불러올 수가 없다 왜냐하면
+ 	security-context.xml가 DispatcherServlet보다 더 먼저 실행되기 때문이다 따라서
+ 	Spring security에 빈이 등록되기전 dao쪽에 먼저 빈으로 등록이 되어야 어노테이션 기반으로 dao를 불러올 수 있기 때문에
+ 	아래와 같은 설정을 하였다.
+ 	마찬가지로 DispatcherServlet설정 파일인 servlet-context에도 아래와 비슷한 설정이 존재한다.
+ 	의미는 정 반대이고 @controller만 빈으로 등록한다는 뜻이다.
+  -->
+<context:component-scan use-default-filters="true" base-package="com.nikJ.test">
+	<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+</context:component-scan>
+</beans>
